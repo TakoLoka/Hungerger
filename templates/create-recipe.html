@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'head.html' %}        
+</head>
+
+<body style="overflow: hidden;">
+    <div>
+        {% include 'nav.html' %}
+        <div class="win-r" >
+            <div class="recipe-div">
+                <div class="recipe">
+                    <div style="padding: 11px 0 4px 24px;border-bottom: 1px solid antiquewhite;">
+                        <span style="font-size: 25px;">Create a Recipe</span>
+                    </div>
+                    <div class="recipe-title">
+                        <div class="recipe-avt">
+                            <img src="{{path}}{{user[0][4]}}" alt="">
+                        </div>
+                        <div class="recipe-user">
+                            <div class="recipe-username">
+                                <span class="recipe-username-name">{{user[0][0]}}</span>
+                                <span class="recipe-username-id">@{{user[0][1]}}</span>
+                            </div>
+                            <div class="recipe-date">
+                                <span >{{date}}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <form action="/create-recipe"enctype="multipart/form-data" method="post">
+                        <div class="recipe-cont">
+                            <div class="recipe-text">
+                                <label for="name" class="fw-bold">Name</label>
+                                <input type="text" name="name" id="name" placeholder="Let's give a name to your recipe :)" ></input>
+                                <label for="description" class="fw-bold">Description</label>
+                                <textarea name="description" id="description" placeholder="Let's give a description to your recipe :)" ></textarea>
+                                <label for="ingredients" class="fw-bold">Ingredients</label>
+                                <select class="form-select" name="ingredients" id="ingredients" multiple>
+                                    {%for ingredient in ingredients%}
+                                        <option value="{{ingredient[0]}}">{{ingredient[1]}}</option>
+                                    {%endfor%}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="recipe-controls">
+                            <div class="recipe-controls-l">
+                                <!-- Add Image Option disabled temporally -->
+                                <div class="recipe-image-upload">
+                                    <label for="file-input"><img src="{{path}}/static/images/img-upload-ico.png"></label>    
+                                    <p class="file-name"></p>
+                                    <input id="file-input" name="image" type="file" />
+                                </div>
+                            </div>
+                            <div class="recipe-controls-r">
+                                <button id="post_submit" type="submit">Post</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    
+    </div>
+
+    
+    <script src="/static/JS/enter-to-recipe.js"></script>
+    <script src="/static/JS/popup-img.js"></script>
+
+</body>
+</html>
