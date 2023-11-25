@@ -84,10 +84,10 @@ def register():
 
 @app.route('/login_validation', methods=['POST'])
 def login_validation():
-    email = request.form.get('email')
+    name = request.form.get('name')
     password = request.form.get('password')
     cursor = mysql.connection.cursor()
-    cursor.execute("""SELECT * FROM `users` WHERE `email` LIKE '{}' AND `password` LIKE '{}'""".format(email, password))
+    cursor.execute("""SELECT * FROM `users` WHERE `name` LIKE '{}' AND `password` LIKE '{}'""".format(name, password))
     users = cursor.fetchall()
     if len(users)>0:
         session['user_id'] = users[0][3]
