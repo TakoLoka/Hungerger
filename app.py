@@ -84,17 +84,10 @@ def register():
 
 @app.route('/login_validation', methods=['POST'])
 def login_validation():
-<<<<<<< HEAD
-    username = request.form.get('username')
-    password = request.form.get('password')
-    cursor = mysql.connection.cursor()
-    cursor.execute("""SELECT * FROM `users` WHERE `username` LIKE '{}' AND `password` LIKE '{}'""".format(username, password))
-=======
     name = request.form.get('name')
     password = request.form.get('password')
     cursor = mysql.connection.cursor()
-    cursor.execute("""SELECT * FROM `users` WHERE `name` LIKE '{}' AND `password` LIKE '{}'""".format(name, password))
->>>>>>> a38a6f92f9c662c5cbd6fff6a64bf437231047f2
+    cursor.execute("""SELECT * FROM `users` WHERE `username` LIKE '{}' AND `password` LIKE '{}'""".format(name, password))
     users = cursor.fetchall()
     if len(users)>0:
         session['user_id'] = users[0][3]
@@ -135,6 +128,61 @@ def create_recipe():
         else:
             print("""INSERT INTO `recipes` (`name`, `description`, `creator_id`, `creation_date`) values ("{}","{}","{}","{}")""".format(name, description, user_id, created_at))
             cursor.execute("""INSERT INTO `recipes` (`name`, `description`, `creator_id`, `creation_date`) values ("{}","{}","{}","{}")""".format(name, description, user_id, created_at))
+        
+        cursor_created_recipe = mysql.connection.cursor()
+        created_recipe = cursor_created_recipe.execute("""select recipe_id from recipes where name = '{}'""".format(name))
+        cursor_ingredient = mysql.connection.cursor()
+        for ingredient in ingredients:
+            print("------ Ingredient: "+ingredient+" ------")
+            cursor_ingredient.execute("""INSERT INTO `recipes_ingredients` (`recipe_id`, `ingredient_id`) values ("{}","{}")""".format(created_recipe, ingredient))
+        mysql.connection.commit()
+        return redirect('/')
+    else:
+        return render_template('login.html')
+    
+@app.route('/edit-recipe/@<path:recipe_id>')
+def edit_recipe_page(recipe_id):
+    if 'user_id' in session:
+        path = get_path()
+        user = get_user()
+        x = datetime.datetime.now()
+        date = x.strftime("%B %d, %Y")
+        cursor = mysql.connection.cursor()
+        cursor.execute("""select ingredient_id, name, description, price from ingredients""")
+        ingredients = cursor.fetchall()
+        cursor = mysql.connection.cursor()
+        cursor.execute("""select recipe_id, name, description, image from recipes where recipe_id={}""".format(recipe_id))
+        recipe = cursor.fetchall()
+        cursor = mysql.connection.cursor()
+        cursor.execute("""select ri_id, recipe_id, ingredient_id from recipes_ingredients where recipe_id = {} """.format(recipe_id))
+        recipe_ingredients = cursor.fetchall()
+        return render_template('edit-recipe.html', user=user, date=date, path=path, ingredients=ingredients, recipe=recipe, recipe_ingredients=recipe_ingredients, recipe_id=recipe_id)
+    else:
+        return redirect('/login')
+    
+@app.route('/edit-recipe', methods=['POST'])
+def edit_recipe():
+    if 'user_id' in session:
+        recipe_id=request.form.get('recipe_id')
+        name=request.form.get('name')
+        description=request.form.get('description')
+        # TODO: Insert INTO recipes_ingredients
+        ingredients=request.form.getlist('ingredients')
+        print(ingredients)
+
+        user_id = session['user_id']
+        x = datetime.datetime.now()
+        created_at = x.strftime("%B %d, %Y")
+        f = request.files['image']
+        cursor = mysql.connection.cursor()
+        if f.filename is not '':
+            filename = os.path.join(app.config['UPLOAD_FOLDER'], session['user_id'] + ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))+secure_filename(f.filename))
+            f.save(filename)
+            print("""UPDATE `recipes` set `name`="{}", `description`="{}", `creator_id`="{}", `creation_date`="{}" where recipe_id={}""".format(name, description, user_id, created_at, recipe_id))
+            cursor.execute("""UPDATE `recipes` set `name`="{}", `description`="{}", `creator_id`="{}", `creation_date`="{}" where recipe_id={}""".format(name, description, user_id, created_at, recipe_id))
+        else:
+            print("""UPDATE `recipes` set `name`="{}", `description`="{}", `creator_id`="{}", `creation_date`="{}" where recipe_id={}""".format(name, description, user_id, created_at, recipe_id))
+            cursor.execute("""UPDATE `recipes` set `name`="{}", `description`="{}", `creator_id`="{}", `creation_date`="{}" where recipe_id={}""".format(name, description, user_id, created_at, recipe_id))
         
         cursor_created_recipe = mysql.connection.cursor()
         created_recipe = cursor_created_recipe.execute("""select recipe_id from recipes where name = '{}'""".format(name))
