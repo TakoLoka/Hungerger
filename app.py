@@ -61,7 +61,7 @@ def compose():
         path = get_path()
         user = get_user()
         x = datetime.datetime.now()
-        date = x.strftime("%B %d, %Y")
+        date = x.strftime('%Y-%m-%d %H:%M:%S')
         cursor = mysql.connection.cursor()
         cursor.execute("""select ing_id, ing_name, description, price from ingredients""")
         ingredients = cursor.fetchall()
@@ -92,7 +92,7 @@ def login_validation():
     cursor.execute("""SELECT * FROM `reg_user` WHERE `username` LIKE '{}' AND `password` LIKE '{}'""".format(name, password))
     reg_user = cursor.fetchall()
     if len(reg_user)>0:
-        session['user_id'] = reg_user[0][3]
+        session['user_id'] = reg_user[0][0]
         return redirect('/')
     else:
         return redirect('/login')
@@ -119,7 +119,7 @@ def create_recipe():
 
         user_id = session['user_id']
         x = datetime.datetime.now()
-        created_at = x.strftime("%B %d, %Y")
+        created_at = x.strftime('%Y-%m-%d %H:%M:%S')
         f = request.files['image']
         cursor = mysql.connection.cursor()
         if f.filename is not '':
@@ -136,7 +136,7 @@ def create_recipe():
         cursor_ingredient = mysql.connection.cursor()
         for ingredient in ingredients:
             print("------ Ingredient: "+ingredient+" ------")
-            cursor_ingredient.execute("""INSERT INTO `recipes_ingredients` (`rec_id`, `ingredient_id`) values ("{}","{}")""".format(created_recipe, ingredient))
+            cursor_ingredient.execute("""INSERT INTO `recipes_ingredients` (`rec_id`, `ing_id`) values ("{}","{}")""".format(created_recipe, ingredient))
         mysql.connection.commit()
         return redirect('/')
     else:
@@ -148,9 +148,9 @@ def edit_recipe_page(rec_id):
         path = get_path()
         user = get_user()
         x = datetime.datetime.now()
-        date = x.strftime("%B %d, %Y")
+        date = x.strftime('%Y-%m-%d %H:%M:%S')
         cursor = mysql.connection.cursor()
-        cursor.execute("""select ingredient_id, ing_name, description, price from ingredients""")
+        cursor.execute("""select ing_id, ing_name, description, price from ingredients""")
         ingredients = cursor.fetchall()
         cursor = mysql.connection.cursor()
         cursor.execute("""select rec_id, rec_name, description, image from recipes where rec_id={}""".format(rec_id))
@@ -174,7 +174,7 @@ def edit_recipe():
 
         user_id = session['user_id']
         x = datetime.datetime.now()
-        created_at = x.strftime("%B %d, %Y")
+        created_at = x.strftime('%Y-%m-%d %H:%M:%S')
         f = request.files['image']
         cursor = mysql.connection.cursor()
         if f.filename is not '':
@@ -189,6 +189,7 @@ def edit_recipe():
         cursor_created_recipe = mysql.connection.cursor()
         created_recipe = cursor_created_recipe.execute("""select rec_id from recipes where rec_name = '{}'""".format(name))
         cursor_ingredient = mysql.connection.cursor()
+        cursor_ingredient.execute("""DELETE FROM `recipes_ingredients` where rec_id={}""".format(rec_id))
         for ingredient in ingredients:
             print("------ Ingredient: "+ingredient+" ------")
             cursor_ingredient.execute("""INSERT INTO `recipes_ingredients` (`rec_id`, `ing_id`) values ("{}","{}")""".format(created_recipe, ingredient))

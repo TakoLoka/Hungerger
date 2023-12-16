@@ -46,7 +46,7 @@
                                 <label for="ingredients" class="fw-bold">Ingredients</label>
                                 <select class="form-select" name="ingredients" id="ingredients" multiple>
                                     {%for ingredient in ingredients%}
-                                    <option value="{{ingredient[0]}}" {{"selected" if recipe_ingredients[1].__contains__(ingredient[0]) else ""}}>{{ingredient[1]}}</option>
+                                    <option value="{{ingredient[0]}}" {{"selected" if recipe_ingredients.__contains__(ingredient[0]) else ""}}>{{ingredient[1]}}</option>
                                     {%endfor%}
                                 </select>
 
