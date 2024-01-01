@@ -21,7 +21,7 @@ app.config['UPLOAD_FOLDER'] = './static/uploads/'
 def get_user(of_user = '', all=False):
     cursor = mysql.connection.cursor()
     if of_user != '':
-        cursor.execute("""select first_name, last_name, username, user_id, avatar from reg_user where user_id = '{}'""".format(of_user))
+        cursor.execute("""select first_name, last_name, username, user_id, avatar from reg_user where user_id = '{}'""".format(session['user_id']))
     elif all:
         cursor.execute("""select first_name, last_name, username, user_id, avatar, email from reg_user where user_id = '{}'""".format(session['user_id']))
     else:
@@ -32,9 +32,9 @@ def get_user(of_user = '', all=False):
 def get_recipes(of_user = ''):
     cursor = mysql.connection.cursor()
     if of_user != '':
-       cursor.execute("""select rec_name, recipes.rec_id, description, image, creation_date from recipes INNER JOIN (select user_id, username as user_name from reg_user) as user_details on recipes.creator_id = user_details.user_id where recipes.creator_id = '{}' order by recipes.rec_id desc""".format(of_user))
+       cursor.execute("""select rec_name, recipes.rec_id, description, image, creation_date, user_details.user_id from recipes INNER JOIN (select user_id, username as user_name from reg_user) as user_details on recipes.creator_id = user_details.user_id where recipes.creator_id = '{}' order by recipes.rec_id desc""".format(session['user_id']))
     else:
-       cursor.execute("""select rec_name, recipes.rec_id, description, image, creation_date from recipes INNER JOIN (select user_id, username as user_name from reg_user) as user_details on recipes.creator_id = user_details.user_id order by recipes.rec_id desc""")
+       cursor.execute("""select rec_name, recipes.rec_id, description, image, creation_date, user_details.user_id from recipes INNER JOIN (select user_id, username as user_name from reg_user) as user_details on recipes.creator_id = user_details.user_id order by recipes.rec_id desc""")
     recipes = cursor.fetchall()
     return recipes
 
@@ -99,12 +99,14 @@ def login_validation():
 
 @app.route('/add_user', methods=['POST'])
 def add_user():
-    name=request.form.get('name')
+    first_name=request.form.get('first_name')
+    last_name=request.form.get('last_name')
+    username=request.form.get('username')
     email=request.form.get('email')
     password=request.form.get('password')
     cursor = mysql.connection.cursor()
-    cursor.execute("""INSERT INTO `reg_user` (`first_name`, `last_name`, `username`, `email`, `password`) values ("{}","{}","{}","{}","{}")""".format(name,email,password))
-    print("""INSERT INTO `reg_user` (`first_name`, `last_name`, `username`, `email`, `password`) values ("{}","{}","{}","{}","{}")""".format(name,email,password))
+    cursor.execute("""INSERT INTO `reg_user` (`first_name`, `last_name`, `username`, `email`, `password`, `user_type`) values ("{}","{}","{}","{}","{}","{}")""".format(first_name, last_name, username,email,password, 0))
+    print("""INSERT INTO `reg_user` (`first_name`, `last_name`, `username`, `email`, `password`, `user_type`) values ("{}","{}","{}","{}","{}","{}")""".format(first_name, last_name, username,email,password, 0))
     mysql.connection.commit()
     return redirect('/login')
 
@@ -122,15 +124,9 @@ def create_recipe():
         created_at = x.strftime('%Y-%m-%d %H:%M:%S')
         f = request.files['image']
         cursor = mysql.connection.cursor()
-        if f.filename is not '':
-            filename = os.path.join(app.config['UPLOAD_FOLDER'], session['user_id'] + ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))+secure_filename(f.filename))
-            f.save(filename)
-            print("""INSERT INTO `recipes` (`rec_name`, `description`, `image`, `creator_id`, `creation_date`) values ("{}","{}","{}","{}","{}")""".format(name, description, filename, user_id, created_at))
-            cursor.execute("""INSERT INTO `recipes` (`rec_name`, `description`, `image`, `creator_id`, `creation_date`) values ("{}","{}","{}","{}","{}")""".format(name, description, filename, user_id, created_at))
-        else:
-            print("""INSERT INTO `recipes` (`rec_name`, `description`, `creator_id`, `creation_date`) values ("{}","{}","{}","{}")""".format(name, description, user_id, created_at))
-            cursor.execute("""INSERT INTO `recipes` (`rec_name`, `description`, `creator_id`, `creation_date`) values ("{}","{}","{}","{}")""".format(name, description, user_id, created_at))
-        
+        print("""INSERT INTO `recipes` (`rec_name`, `description`, `creator_id`, `creation_date`, `dietary_type`) values ("{}","{}","{}","{}","{}")""".format(name, description, user_id, created_at, "None"))
+        cursor.execute("""INSERT INTO `recipes` (`rec_name`, `description`, `creator_id`, `creation_date`, `dietary_type`) values ("{}","{}","{}","{}","{}")""".format(name, description, user_id, created_at, "None"))
+        mysql.connection.commit()
         cursor_created_recipe = mysql.connection.cursor()
         created_recipe = cursor_created_recipe.execute("""select rec_id from recipes where rec_name = '{}'""".format(name))
         cursor_ingredient = mysql.connection.cursor()
@@ -153,10 +149,10 @@ def edit_recipe_page(rec_id):
         cursor.execute("""select ing_id, ing_name, description, price from ingredients""")
         ingredients = cursor.fetchall()
         cursor = mysql.connection.cursor()
-        cursor.execute("""select rec_id, rec_name, description, image from recipes where rec_id={}""".format(rec_id))
+        cursor.execute("""select rec_name, description, image from recipes where rec_id={}""".format(rec_id))
         recipe = cursor.fetchall()
         cursor = mysql.connection.cursor()
-        cursor.execute("""select ri_id, rec_id, ing_id from recipes_ingredients where rec_id = {} """.format(rec_id))
+        cursor.execute("""select rec_id, ing_id from recipes_ingredients where rec_id = {} """.format(rec_id))
         recipe_ingredients = cursor.fetchall()
         return render_template('edit-recipe.html', user=user, date=date, path=path, ingredients=ingredients, recipe=recipe, recipe_ingredients=recipe_ingredients, rec_id=rec_id)
     else:
@@ -197,6 +193,23 @@ def edit_recipe():
         return redirect('/')
     else:
         return render_template('login.html')
+    
+@app.route('/delete-recipe/@<path:rec_id>')
+def delete_recipe(rec_id):
+    if 'user_id' in session:
+        # TODO: Insert INTO recipes_ingredients
+        ingredients=request.form.getlist('ingredients')
+        cursor = mysql.connection.cursor()
+        cursor.execute("""DELETE FROM `recipes` where rec_id={}""".format(rec_id))
+        cursor_ingredient = mysql.connection.cursor()
+        cursor_ingredient.execute("""DELETE FROM `recipes_ingredients` where rec_id={}""".format(rec_id))
+        for ingredient in ingredients:
+            print("------ Ingredient: "+ingredient+" ------")
+            cursor.execute("""DELETE FROM `recipes_ingredients` where rec_id={}""".format(rec_id))
+        mysql.connection.commit()
+        return redirect('/')
+    else:
+        return render_template('login.html')
 
 @app.route('/update-profile', methods=['POST'])
 def update_profile():
@@ -212,7 +225,7 @@ def update_profile():
     else:
         return redirect('/login')
 
-@app.route('/@<path:user_id>')
+@app.route('/user/@<path:user_id>')
 def user(user_id):
     if 'user_id' in session:
         path = get_path()
@@ -227,7 +240,7 @@ def user(user_id):
     else:
         return redirect('/login')
 
-@app.route('/@<path:user_id>/edit-profile')
+@app.route('/user/@<path:user_id>/edit-profile')
 def edit_profile(user_id):
     if 'user_id' in session:
         if session['user_id'] == user_id:
