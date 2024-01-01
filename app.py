@@ -254,7 +254,25 @@ def edit_profile(user_id):
     else:
         return redirect('/login')
 
-
+@app.route('/recipe-details/@<path:rec_id>')
+def recipe_details(rec_id):
+    if 'user_id' in session:
+        path = get_path()
+        user = get_user()
+        x = datetime.datetime.now()
+        date = x.strftime('%Y-%m-%d %H:%M:%S')
+        cursor = mysql.connection.cursor()
+        cursor.execute("""select ing_id, ing_name, description, price from ingredients""")
+        ingredients = cursor.fetchall()
+        cursor = mysql.connection.cursor()
+        cursor.execute("""select rec_name, description, image from recipes where rec_id={}""".format(rec_id))
+        recipe = cursor.fetchall()
+        cursor = mysql.connection.cursor()
+        cursor.execute("""select rec_id, ing_id from recipes_ingredients where rec_id = {} """.format(rec_id))
+        recipe_ingredients = cursor.fetchall()
+        return render_template('recipe-details.html', user=user, date=date, path=path, ingredients=ingredients, recipe=recipe, recipe_ingredients=recipe_ingredients, rec_id=rec_id)
+    else:
+        return redirect('/login')
 
 @app.route('/logout')
 def logout():
