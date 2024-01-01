@@ -21,11 +21,11 @@ app.config['UPLOAD_FOLDER'] = './static/uploads/'
 def get_user(of_user = '', all=False):
     cursor = mysql.connection.cursor()
     if of_user != '':
-        cursor.execute("""select first_name, last_name, username, user_id, avatar from reg_user where user_id = '{}'""".format(session['user_id']))
+        cursor.execute("""select first_name, last_name, username, user_id, email, bio from reg_user where user_id = '{}'""".format(session['user_id']))
     elif all:
-        cursor.execute("""select first_name, last_name, username, user_id, avatar, email from reg_user where user_id = '{}'""".format(session['user_id']))
+        cursor.execute("""select first_name, last_name, username, user_id, email, bio from reg_user where user_id = '{}'""".format(session['user_id']))
     else:
-        cursor.execute("""select first_name, last_name, username, user_id, avatar from reg_user where user_id = '{}'""".format(session['user_id']))
+        cursor.execute("""select first_name, last_name, username, user_id, email, bio from reg_user where user_id = '{}'""".format(session['user_id']))
     user = cursor.fetchall()
     return user
 
@@ -214,12 +214,14 @@ def delete_recipe(rec_id):
 @app.route('/update-profile', methods=['POST'])
 def update_profile():
     if 'user_id' in session:
-        username=request.form.get('username')
+        first_name=request.form.get('first_name')
+        last_name=request.form.get('last_name')
         email=request.form.get('email')
+        bio=request.form.get('bio')
         user_id = session['user_id']
         cursor = mysql.connection.cursor()
         # print("""INSERT INTO `recipes` (`raw_post`, `user_id`, `posted_at`) values ("{}","{}","{}")""".format(post_data, user_id, created_at))
-        cursor.execute("""UPDATE `reg_user` SET username = '{}', email = '{}' where user_id = '{}' """.format(username, email, user_id))
+        cursor.execute("""UPDATE `reg_user` SET first_name = '{}', last_name = '{}', email = '{}', bio = '{}' where user_id = '{}' """.format(first_name, last_name, email,bio, user_id))
         mysql.connection.commit()
         return redirect('/')
     else:
@@ -240,16 +242,15 @@ def user(user_id):
     else:
         return redirect('/login')
 
-@app.route('/user/@<path:user_id>/edit-profile')
+@app.route('/user/edit-profile/@<path:user_id>')
 def edit_profile(user_id):
     if 'user_id' in session:
-        if session['user_id'] == user_id:
+        if session['user_id'] == int(user_id):
             path = get_path()
             user = get_user(all=True)
             return render_template('edit-profile.html', user = user, path=path)
         else:
-            red = '/@'+user_id
-            return redirect(red)
+            return redirect('/logout')
     else:
         return redirect('/login')
 
