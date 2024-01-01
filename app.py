@@ -128,11 +128,12 @@ def create_recipe():
         cursor.execute("""INSERT INTO `recipes` (`rec_name`, `description`, `creator_id`, `creation_date`, `dietary_type`) values ("{}","{}","{}","{}","{}")""".format(name, description, user_id, created_at, "None"))
         mysql.connection.commit()
         cursor_created_recipe = mysql.connection.cursor()
-        created_recipe = cursor_created_recipe.execute("""select rec_id from recipes where rec_name = '{}'""".format(name))
+        cursor_created_recipe.execute("""select rec_id, rec_name from recipes where rec_name = '{}'""".format(name))
+        created_recipe_id = cursor_created_recipe.fetchall()
         cursor_ingredient = mysql.connection.cursor()
         for ingredient in ingredients:
             print("------ Ingredient: "+ingredient+" ------")
-            cursor_ingredient.execute("""INSERT INTO `recipes_ingredients` (`rec_id`, `ing_id`) values ("{}","{}")""".format(created_recipe, ingredient))
+            cursor_ingredient.execute("""INSERT INTO `recipes_ingredients` (`rec_id`, `ing_id`) values ("{}","{}")""".format(created_recipe_id[0][0], ingredient))
         mysql.connection.commit()
         return redirect('/')
     else:
@@ -154,9 +155,13 @@ def edit_recipe_page(rec_id):
         cursor = mysql.connection.cursor()
         cursor.execute("""select rec_id, ing_id from recipes_ingredients where rec_id = {} """.format(rec_id))
         recipe_ingredients = cursor.fetchall()
+        recipe_ingredients = column(recipe_ingredients, 1)
         return render_template('edit-recipe.html', user=user, date=date, path=path, ingredients=ingredients, recipe=recipe, recipe_ingredients=recipe_ingredients, rec_id=rec_id)
     else:
         return redirect('/login')
+    
+def column(matrix, i):
+    return [row[i] for row in matrix]
     
 @app.route('/edit-recipe', methods=['POST'])
 def edit_recipe():
@@ -181,14 +186,11 @@ def edit_recipe():
         else:
             print("""UPDATE `recipes` set `rec_name`="{}", `description`="{}", `creator_id`="{}", `creation_date`="{}" where rec_id={}""".format(name, description, user_id, created_at, rec_id))
             cursor.execute("""UPDATE `recipes` set `rec_name`="{}", `description`="{}", `creator_id`="{}", `creation_date`="{}" where rec_id={}""".format(name, description, user_id, created_at, rec_id))
-        
-        cursor_created_recipe = mysql.connection.cursor()
-        created_recipe = cursor_created_recipe.execute("""select rec_id from recipes where rec_name = '{}'""".format(name))
         cursor_ingredient = mysql.connection.cursor()
         cursor_ingredient.execute("""DELETE FROM `recipes_ingredients` where rec_id={}""".format(rec_id))
         for ingredient in ingredients:
             print("------ Ingredient: "+ingredient+" ------")
-            cursor_ingredient.execute("""INSERT INTO `recipes_ingredients` (`rec_id`, `ing_id`) values ("{}","{}")""".format(created_recipe, ingredient))
+            cursor_ingredient.execute("""INSERT INTO `recipes_ingredients` (`rec_id`, `ing_id`) values ("{}","{}")""".format(rec_id, ingredient))
         mysql.connection.commit()
         return redirect('/')
     else:

@@ -41,18 +41,12 @@
                                 <textarea name="description" id="description"
                                     placeholder="Let's give a description to your recipe :)"></textarea>
 
-
                                 <label for="ingredients" class="fw-bold">Ingredients</label>
                                 <select class="form-select" name="ingredients" id="ingredients" multiple>
                                     {%for ingredient in ingredients%}
                                     <option value="{{ingredient[0]}}">{{ingredient[1]}}</option>
                                     {%endfor%}
                                 </select>
-
-
-
-
-
                             </div>
                         </div>
                         <div class="recipe-controls">
