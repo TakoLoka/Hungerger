@@ -21,7 +21,7 @@ app.config['UPLOAD_FOLDER'] = './static/uploads/'
 def get_user(of_user = '', all=False):
     cursor = mysql.connection.cursor()
     if of_user != '':
-        cursor.execute("""select first_name, last_name, username, user_id, email, bio from reg_user where user_id = '{}'""".format(session['user_id']))
+        cursor.execute("""select first_name, last_name, username, user_id, email, bio from reg_user where user_id = '{}'""".format(of_user))
     elif all:
         cursor.execute("""select first_name, last_name, username, user_id, email, bio from reg_user where user_id = '{}'""".format(session['user_id']))
     else:
