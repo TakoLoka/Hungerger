@@ -1,10 +1,10 @@
 CREATE DATABASE  IF NOT EXISTS `hungerger` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `hungerger`;
--- MySQL dump 10.13  Distrib 8.0.31, for macos12 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.34, for Win64 (x86_64)
 --
--- Host: localhost    Database: hungerger
+-- Host: 127.0.0.1    Database: hungerger
 -- ------------------------------------------------------
--- Server version	8.0.31
+-- Server version	8.0.35
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -26,18 +26,18 @@ DROP TABLE IF EXISTS `admin_user`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `admin_user` (
   `user_id` int NOT NULL AUTO_INCREMENT,
-  `username` varchar(45) NOT NULL,
-  `email` varchar(45) NOT NULL,
-  `first_name` varchar(45) NOT NULL,
-  `last_name` varchar(45) NOT NULL,
+  `username` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `first_name` varchar(255) NOT NULL,
+  `last_name` varchar(255) NOT NULL,
   `avatar` varchar(45) DEFAULT NULL,
-  `password` varchar(45) NOT NULL,
-  `user_type` varchar(45) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `user_type` varchar(255) NOT NULL,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `user_id_UNIQUE` (`user_id`),
   UNIQUE KEY `username_UNIQUE` (`username`),
   UNIQUE KEY `email_UNIQUE` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -46,6 +46,7 @@ CREATE TABLE `admin_user` (
 
 LOCK TABLES `admin_user` WRITE;
 /*!40000 ALTER TABLE `admin_user` DISABLE KEYS */;
+INSERT INTO `admin_user` VALUES (1,'TakoLoka','tako@mail.com','Tako','Loka',NULL,'TakoLoka','1'),(2,'NewMem','newmem@mail.com','New','Mem','None','NewMem','1');
 /*!40000 ALTER TABLE `admin_user` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -141,12 +142,12 @@ DROP TABLE IF EXISTS `ingredients`;
 CREATE TABLE `ingredients` (
   `ing_id` int NOT NULL AUTO_INCREMENT,
   `ing_name` varchar(45) NOT NULL,
-  `price` int NOT NULL,
+  `price` double NOT NULL,
   `description` varchar(45) NOT NULL,
   PRIMARY KEY (`ing_id`),
   UNIQUE KEY `ing_id_UNIQUE` (`ing_id`),
   UNIQUE KEY `ing_name_UNIQUE` (`ing_name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -155,6 +156,7 @@ CREATE TABLE `ingredients` (
 
 LOCK TABLES `ingredients` WRITE;
 /*!40000 ALTER TABLE `ingredients` DISABLE KEYS */;
+INSERT INTO `ingredients` VALUES (1,'Salt',1,'Salt'),(2,'Rice',3,'Rice'),(3,'Water',2,'Water'),(4,'Oil',5.6,'Oil');
 /*!40000 ALTER TABLE `ingredients` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -232,7 +234,7 @@ CREATE TABLE `recipes` (
   `rec_id` int NOT NULL AUTO_INCREMENT,
   `rec_name` varchar(45) NOT NULL,
   `dietary_type` varchar(45) NOT NULL,
-  `discription` varchar(500) NOT NULL,
+  `description` varchar(500) NOT NULL,
   `image` blob,
   `creation_date` datetime DEFAULT NULL,
   `creator_id` int NOT NULL,
@@ -240,7 +242,7 @@ CREATE TABLE `recipes` (
   UNIQUE KEY `rec_id_UNIQUE` (`rec_id`),
   KEY `user_id_idx` (`creator_id`),
   CONSTRAINT `user_id` FOREIGN KEY (`creator_id`) REFERENCES `reg_user` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -249,35 +251,33 @@ CREATE TABLE `recipes` (
 
 LOCK TABLES `recipes` WRITE;
 /*!40000 ALTER TABLE `recipes` DISABLE KEYS */;
+INSERT INTO `recipes` VALUES (3,'QA_Engineer_Tarik_Demirtas','None','asd',NULL,'2024-01-01 21:35:57',2),(4,'TakoLoka','None','TakoLoka as tako',NULL,'2024-01-02 00:19:46',1),(10,'Nefis Yemek','None','Tarif',NULL,'2024-01-02 00:31:30',1);
 /*!40000 ALTER TABLE `recipes` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `recipes_ingredient`
+-- Table structure for table `recipes_ingredients`
 --
 
-DROP TABLE IF EXISTS `recipes_ingredient`;
+DROP TABLE IF EXISTS `recipes_ingredients`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `recipes_ingredient` (
-  `rec_id` int NOT NULL,
-  `ing_id` int NOT NULL,
-  `amount` varchar(45) DEFAULT NULL,
-  PRIMARY KEY (`ing_id`,`rec_id`),
-  UNIQUE KEY `rec_id_UNIQUE` (`rec_id`),
-  UNIQUE KEY `ing_id_UNIQUE` (`ing_id`),
-  CONSTRAINT `rec_id` FOREIGN KEY (`rec_id`) REFERENCES `recipes` (`rec_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `rec_ing_id` FOREIGN KEY (`ing_id`) REFERENCES `ingredients` (`ing_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `recipes_ingredients` (
+  `ri_id` int NOT NULL AUTO_INCREMENT,
+  `rec_id` int DEFAULT NULL,
+  `ing_id` int DEFAULT NULL,
+  PRIMARY KEY (`ri_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `recipes_ingredient`
+-- Dumping data for table `recipes_ingredients`
 --
 
-LOCK TABLES `recipes_ingredient` WRITE;
-/*!40000 ALTER TABLE `recipes_ingredient` DISABLE KEYS */;
-/*!40000 ALTER TABLE `recipes_ingredient` ENABLE KEYS */;
+LOCK TABLES `recipes_ingredients` WRITE;
+/*!40000 ALTER TABLE `recipes_ingredients` DISABLE KEYS */;
+INSERT INTO `recipes_ingredients` VALUES (13,4,2),(14,4,3),(19,10,1),(20,10,3);
+/*!40000 ALTER TABLE `recipes_ingredients` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -302,7 +302,7 @@ CREATE TABLE `reg_user` (
   UNIQUE KEY `user_id_UNIQUE` (`user_id`),
   UNIQUE KEY `username_UNIQUE` (`username`),
   UNIQUE KEY `email_UNIQUE` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -311,6 +311,7 @@ CREATE TABLE `reg_user` (
 
 LOCK TABLES `reg_user` WRITE;
 /*!40000 ALTER TABLE `reg_user` DISABLE KEYS */;
+INSERT INTO `reg_user` VALUES (1,'TakoLoka','takoloka@mail.com','Tarık','Demirtaş',NULL,'TakoLoka','0',NULL,NULL),(2,'Koko','kokok@mail.com','Tako','Koko',NULL,'Koko','0','None',NULL);
 /*!40000 ALTER TABLE `reg_user` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -366,14 +367,6 @@ LOCK TABLES `request_bt` WRITE;
 /*!40000 ALTER TABLE `request_bt` DISABLE KEYS */;
 /*!40000 ALTER TABLE `request_bt` ENABLE KEYS */;
 UNLOCK TABLES;
-
---
--- Dumping events for database 'hungerger'
---
-
---
--- Dumping routines for database 'hungerger'
---
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -384,4 +377,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-12-16 16:18:06
+-- Dump completed on 2024-01-02  1:27:26
